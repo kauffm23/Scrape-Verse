@@ -81,19 +81,19 @@ Use environment variables so secrets never enter source control:
 $env:BrightData__ApiToken = "your-token"
 $env:BrightData__CisaCollectorId = "c_..."
 $env:BrightData__FixtureCollectorId = "c_..."
-$env:BrightData__FixtureUrl = "https://your-tunnel.trycloudflare.com/advisories"
-$env:Fixture__BaseUrl = "https://your-tunnel.trycloudflare.com"
+$env:BrightData__FixtureUrl = "https://labwatch.brentkauffman.org/advisories"
+$env:Fixture__BaseUrl = "https://labwatch.brentkauffman.org"
 $env:Fixture__AdminToken = "a-random-demo-token"
 $env:FIXTURE_ADMIN_TOKEN = $env:Fixture__AdminToken
 ```
 
-Start a public Quick Tunnel after the fixture is running:
+The named Cloudflare Tunnel at [labwatch.brentkauffman.org](https://labwatch.brentkauffman.org/) maps to the fixture at `http://localhost:5181`. Start the fixture and ensure the tunnel connector is running, then verify the public advisory endpoint:
 
 ```powershell
-cloudflared tunnel --url http://localhost:5181
+Invoke-WebRequest https://labwatch.brentkauffman.org/advisories
 ```
 
-Copy its HTTPS origin into the two fixture variables above, restart the dashboard, and build the fixture collector using [the supplied prompt](docs/bright-data-prompts.md). The fixture's admin endpoint requires `X-Fixture-Token`; only `/advisories` should be provided to the collector.
+Restart the dashboard after setting the environment variables, and build the fixture collector using [the supplied prompt](docs/bright-data-prompts.md). The fixture's admin endpoint requires `X-Fixture-Token`; only `https://labwatch.brentkauffman.org/advisories` should be provided to the collector.
 
 Switch layouts from the dashboard or PowerShell:
 
@@ -135,7 +135,7 @@ The 1:55 recording script is in [docs/demo-script.md](docs/demo-script.md).
 - The application does not make clinical decisions. It supports cybersecurity/change-control review.
 - The checked-in CISA example is a demo seed; use the live collector for current data.
 - Healing approval remains deliberately human-gated.
-- A Cloudflare Quick Tunnel URL is temporary and must be updated before the recorded live run.
+- The named Cloudflare Tunnel must be connected to the local fixture on port `5181` during a live run.
 
 ## Judging evidence
 
