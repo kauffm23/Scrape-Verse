@@ -1,0 +1,29 @@
+@page "/advisories/{Id:guid}"
+@inject DashboardService Dashboard
+
+<PageTitle>Advisory evidence · LabWatch</PageTitle>
+
+@if (_detail is null)
+{
+    <div class="loading-state"><span class="spinner"></span><p>Loading evidence…</p></div>
+}
+else
+{
+    var advisory = _detail.Value.Advisory;
+    <header class="detail-hero"><a href="/">← Command center</a><p class="eyebrow">EVIDENCE-BACKED ASSESSMENT</p><h1>@advisory.Title</h1><div><span class="severity @advisory.Severity.ToLowerInvariant()">@advisory.Severity</span><span>@advisory.SourceId</span><span>@advisory.PublishedAt.ToString("MMMM d, yyyy")</span></div></header>
+    <div class="detail-grid">
+        <main class="detail-card"><h2>Advisory scope</h2><dl class="scope-list"><dt>Manufacturer</dt><dd>@advisory.Manufacturer</dd><dt>Products</dt><dd>@advisory.Products</dd><dt>Models</dt><dd>@advisory.Models</dd><dt>Affected versions</dt><dd>@advisory.AffectedVersions</dd><dt>CVEs</dt><dd>@advisory.Cves</dd></dl><h2>Risk summary</h2><p>@advisory.Summary</p><h2>Recommended mitigation</h2><p>@advisory.Mitigations</p><a class="evidence-link" href="@advisory.SourceUrl" target="_blank">Open source evidence ↗</a></main>
+        <aside class="detail-card provenance"><h2>Provenance</h2><span>Snapshot</span><code>@advisory.SnapshotId</code><span>Content hash</span><code>@advisory.ContentHash</code><p>This record passed schema, duplicate, count-drift, and required-field gates before publication.</p></aside>
+    </div>
+    <section class="data-card detail-table"><div class="section-heading compact"><div><p class="eyebrow">EXPLAINABLE MATCHING</p><h2>Synthetic asset assessments</h2></div></div><div class="table-wrap"><table><thead><tr><th>Asset</th><th>Outcome</th><th>Why</th><th>Action</th></tr></thead><tbody>
+    @foreach (var item in _detail.Value.Assessments.OrderBy(x => x.Assessment.Outcome))
+    { <tr><td><strong>@item.Asset.AssetTag</strong><span>@item.Asset.Product @item.Asset.Version</span></td><td><span class="status @item.Assessment.Outcome.ToString().ToLowerInvariant()">@Label(item.Assessment.Outcome)</span></td><td>@string.Join(" ", ValueList.Split(item.Assessment.Reasons))</td><td>@item.Assessment.RecommendedAction</td></tr> }
+    </tbody></table></div></section>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private (Advisory Advisory, IReadOnlyList<DashboardAssessment> Assessments)? _detail;
+    protected override async Task OnParametersSetAsync() => _detail = await Dashboard.GetAdvisoryAsync(Id);
+    private static string Label(AssessmentOutcome outcome) => outcome switch { AssessmentOutcome.NotAffected => "Not affected", AssessmentOutcome.ReviewRequired => "Review required", _ => "Affected" };
+}

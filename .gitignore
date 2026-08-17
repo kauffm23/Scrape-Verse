@@ -1,0 +1,16 @@
+bin/
+obj/
+.vs/
+.idea/
+.dotnet-home/
+.nuget/
+*.user
+*.suo
+*.db
+*.db-shm
+*.db-wal
+.env
+appsettings.Local.json
+TestResults/
+artifacts/
+screenshots/local/

@@ -1,0 +1,44 @@
+[
+  {
+    "source_id": "LAB-FIX-2026-001",
+    "source_url": "https://fixture.example/advisories#LAB-FIX-2026-001",
+    "title": "Atellica Data Manager Update",
+    "published_at": "2026-08-17T00:00:00Z",
+    "manufacturer": "Siemens",
+    "products": ["Atellica Data Manager"],
+    "models": ["ADM"],
+    "affected_versions": ["1.0 - 1.4"],
+    "cves": ["CVE-2026-41001"],
+    "severity": "Critical",
+    "summary": "Fictional chaos-fixture advisory for demonstration only.",
+    "mitigations": "Install version 1.5 and review audit logs."
+  },
+  {
+    "source_id": "LAB-FIX-2026-002",
+    "source_url": "https://fixture.example/advisories#LAB-FIX-2026-002",
+    "title": "BD Synapsys Input Validation",
+    "published_at": "2026-08-17T00:00:00Z",
+    "manufacturer": "BD",
+    "products": ["BD Synapsys"],
+    "models": ["Synapsys"],
+    "affected_versions": ["< 4.25"],
+    "cves": ["CVE-2026-41002"],
+    "severity": "High",
+    "summary": "Fictional chaos-fixture advisory for demonstration only.",
+    "mitigations": "Upgrade to 4.25 or later."
+  },
+  {
+    "source_id": "LAB-FIX-2026-003",
+    "source_url": "https://fixture.example/advisories#LAB-FIX-2026-003",
+    "title": "Roche cobas infinity Session Handling",
+    "published_at": "2026-08-17T00:00:00Z",
+    "manufacturer": "Roche Diagnostics",
+    "products": ["cobas infinity"],
+    "models": ["Core Lab"],
+    "affected_versions": ["<= 3.03"],
+    "cves": ["CVE-2026-41003"],
+    "severity": "High",
+    "summary": "Fictional chaos-fixture advisory for demonstration only.",
+    "mitigations": "Apply the vendor hotfix and rotate active sessions."
+  }
+]

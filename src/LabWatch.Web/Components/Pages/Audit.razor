@@ -1,0 +1,19 @@
+@page "/audit"
+@inject DashboardService Dashboard
+
+<PageTitle>Audit timeline · LabWatch</PageTitle>
+
+@if (_snapshot is null) { <div class="loading-state"><span class="spinner"></span></div> }
+else
+{
+    <header class="detail-hero"><a href="/">← Command center</a><p class="eyebrow">CHAIN OF CUSTODY</p><h1>Collector audit timeline</h1><p>Every run is immutable evidence. Rejected data never replaces the last trusted signal.</p></header>
+    <section class="timeline">
+    @foreach (var run in _snapshot.Runs)
+    {
+        var healing = _snapshot.HealingEvents.FirstOrDefault(x => x.FailedRunId == run.Id || x.RecoveredRunId == run.Id);
+        <article class="timeline-item @run.Status.ToString().ToLowerInvariant()"><div class="timeline-dot"></div><div class="timeline-card"><header><div><span class="status @run.Status.ToString().ToLowerInvariant()">@run.Status</span><strong>@run.Source</strong></div><time>@run.StartedAt.ToLocalTime().ToString("MMM d · h:mm:ss tt")</time></header><dl><dt>Collector</dt><dd><code>@run.CollectorId</code></dd><dt>Snapshot</dt><dd><code>@run.SnapshotId</code></dd><dt>Records</dt><dd>@run.ItemCount</dd></dl>@if (!string.IsNullOrWhiteSpace(run.ValidationErrors)) { <pre>@run.ValidationErrors</pre> }@if (healing is not null) { <div class="healing-note"><strong>Human-approved healing event</strong><p>@healing.RepairPrompt</p><span>Approved @healing.ApprovedAt.ToLocalTime().ToString("h:mm:ss tt") by @healing.ApprovedBy</span></div> }</div></article>
+    }
+    </section>
+}
+
+@code { private DashboardSnapshot? _snapshot; protected override async Task OnInitializedAsync() => _snapshot = await Dashboard.GetAsync(); }

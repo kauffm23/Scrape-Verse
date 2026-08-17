@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LabWatch.Core/LabWatch.Core.csproj" />
+    <Project Path="src/LabWatch.Fixture/LabWatch.Fixture.csproj" />
+    <Project Path="src/LabWatch.Infrastructure/LabWatch.Infrastructure.csproj" />
+    <Project Path="src/LabWatch.Web/LabWatch.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LabWatch.Tests/LabWatch.Tests.csproj" />
+  </Folder>
+</Solution>

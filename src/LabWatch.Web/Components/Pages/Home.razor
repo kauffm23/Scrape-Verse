@@ -1,0 +1,121 @@
+@page "/"
+@inject DashboardService Dashboard
+@inject IngestionService Ingestion
+@inject DemoWorkflowService Demo
+@inject FixtureControlService Fixture
+@inject IOptions<BrightDataOptions> BrightData
+
+<PageTitle>Command center · LabWatch</PageTitle>
+
+@if (_snapshot is null)
+{
+    <div class="loading-state"><span class="spinner"></span><p>Loading the last trusted signal…</p></div>
+}
+else
+{
+    <header class="hero">
+        <div>
+            <p class="eyebrow">SELF-HEALING REGULATORY INTELLIGENCE</p>
+            <h1>Trust the signal,<br><em>even when the source changes.</em></h1>
+            <p class="hero-copy">Public medical-device advisories become explainable laboratory impact assessments—with schema drift quarantined before it reaches operations.</p>
+        </div>
+        <div class="trust-card @(_snapshot.IsDegraded ? "degraded" : "healthy")">
+            <span class="pulse"></span>
+            <div><small>PIPELINE STATE</small><strong>@(_snapshot.IsDegraded ? "Protected · degraded source" : "Healthy · signal current")</strong>
+            <p>Last trusted snapshot<br><b>@(_snapshot.LastAccepted?.CompletedAt?.ToLocalTime().ToString("MMM d · h:mm:ss tt") ?? "Not available")</b></p></div>
+        </div>
+    </header>
+
+    @if (_snapshot.IsDegraded)
+    {
+        <section class="alert-panel"><div><span class="alert-icon">!</span><div><strong>Extraction drift quarantined</strong><p>@_snapshot.Latest!.ValidationErrors.Split('\n')[0]</p></div></div><span>Last-known-good data remains active</span></section>
+    }
+    @if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <div class="toast-panel @(_messageIsError ? "error" : "success")">@_message</div>
+    }
+
+    <section class="metric-grid">
+        <article><span>High-confidence affected</span><strong>@Affected.Count</strong><small>synthetic assets</small></article>
+        <article><span>Needs human review</span><strong>@Review.Count</strong><small>incomplete evidence</small></article>
+        <article><span>Advisories tracked</span><strong>@_snapshot.Advisories.Count</strong><small>accepted records</small></article>
+        <article><span>Collector reliability</span><strong>@Reliability%</strong><small>@AcceptedRuns of @_snapshot.Runs.Count runs accepted</small></article>
+    </section>
+
+    <div class="section-heading"><div><p class="eyebrow">OPERATIONAL IMPACT</p><h2>Assets requiring action</h2></div><span class="synthetic-label">SYNTHETIC INVENTORY</span></div>
+    <section class="data-card">
+        <div class="table-wrap"><table>
+            <thead><tr><th>Asset</th><th>Advisory</th><th>Evidence</th><th>Disposition</th></tr></thead>
+            <tbody>
+            @foreach (var item in Affected.Take(6))
+            {
+                <tr><td><strong>@item.Asset.AssetTag</strong><span>@item.Asset.Department · @item.Asset.Product @item.Asset.Version</span></td>
+                    <td><a href="@($"advisories/{item.Advisory.Id}")">@item.Advisory.Title</a><span>@item.Advisory.Manufacturer · @item.Advisory.Severity</span></td>
+                    <td><span class="reason">@ValueList.Split(item.Assessment.Reasons).FirstOrDefault()</span></td>
+                    <td><span class="status affected">Affected</span></td></tr>
+            }
+            </tbody>
+        </table></div>
+    </section>
+
+    <div class="split-grid">
+        <section>
+            <div class="section-heading compact"><div><p class="eyebrow">SOURCE INTELLIGENCE</p><h2>Recent advisories</h2></div></div>
+            <div class="advisory-list">
+            @foreach (var advisory in _snapshot.Advisories.Take(5))
+            {
+                <a class="advisory-row" href="@($"advisories/{advisory.Id}")"><span class="severity @advisory.Severity.ToLowerInvariant()">@advisory.Severity</span><div><strong>@advisory.Title</strong><p>@advisory.SourceId · @advisory.PublishedAt.ToString("MMM d, yyyy")</p></div><b>→</b></a>
+            }
+            </div>
+        </section>
+        <section>
+            <div class="section-heading compact"><div><p class="eyebrow">DEMO CONTROLS</p><h2>Break. Protect. Recover.</h2></div></div>
+            <div class="control-card">
+                <p>Rehearsal mode records the complete story without consuming credits. Live mode uses configured Bright Data collectors.</p>
+                <div class="step-buttons">
+                    <button disabled="@_busy" @onclick="SimulateDrift"><b>1</b><span>Simulate redesign<small>Quarantine broken extraction</small></span></button>
+                    <button disabled="@_busy" @onclick="SimulateRecovery"><b>2</b><span>Approve recovery<small>Record heal + accepted run</small></span></button>
+                </div>
+                <div class="live-actions">
+                    <button disabled="@(_busy || !LiveReady)" @onclick="RunCisa">Run CISA collector</button>
+                    <button disabled="@(_busy || !FixtureReady)" @onclick="RunFixture">Run fixture collector</button>
+                    <button disabled="@_busy" @onclick='() => SetLayout("v1")'>Fixture V1</button>
+                    <button disabled="@_busy" @onclick='() => SetLayout("v2")'>Fixture V2</button>
+                </div>
+                @if (!LiveReady)
+                {
+                    <small class="config-note">Add environment variables to enable live collector buttons. Offline rehearsal is ready now.</small>
+                }
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    private DashboardSnapshot? _snapshot;
+    private string _message = "";
+    private bool _messageIsError;
+    private bool _busy;
+    private BrightDataOptions Options => BrightData.Value;
+    private bool LiveReady => !string.IsNullOrWhiteSpace(Options.ApiToken) && !string.IsNullOrWhiteSpace(Options.CisaCollectorId);
+    private bool FixtureReady => !string.IsNullOrWhiteSpace(Options.ApiToken) && !string.IsNullOrWhiteSpace(Options.FixtureCollectorId);
+    private List<DashboardAssessment> Affected => _snapshot?.Assessments.Where(x => x.Assessment.Outcome == AssessmentOutcome.Affected).ToList() ?? [];
+    private List<DashboardAssessment> Review => _snapshot?.Assessments.Where(x => x.Assessment.Outcome == AssessmentOutcome.ReviewRequired).ToList() ?? [];
+    private int AcceptedRuns => _snapshot?.Runs.Count(x => x.Status == CollectorRunStatus.Accepted) ?? 0;
+    private int Reliability => _snapshot?.Runs.Count > 0 ? (int)Math.Round(AcceptedRuns * 100d / _snapshot.Runs.Count) : 0;
+
+    protected override async Task OnInitializedAsync() => await Refresh();
+    private async Task Refresh() { _snapshot = await Dashboard.GetAsync(); StateHasChanged(); }
+    private async Task Execute(Func<Task> action, string success)
+    {
+        _busy = true; _message = ""; _messageIsError = false;
+        try { await action(); _message = success; }
+        catch (Exception ex) { _message = ex.Message; _messageIsError = true; }
+        finally { _busy = false; await Refresh(); }
+    }
+    private Task SimulateDrift() => Execute(async () => await Demo.SimulateDriftAsync(), "Drift detected and quarantined. Trusted data was preserved.");
+    private Task SimulateRecovery() => Execute(async () => await Demo.SimulateRecoveryAsync(), "Human-approved healing recorded. The collector recovered all three records.");
+    private Task RunCisa() => Execute(async () => await Ingestion.RunAsync("CISA medical advisories", Options.CisaCollectorId, [Options.CisaUrl]), "CISA collection completed.");
+    private Task RunFixture() => Execute(async () => await Ingestion.RunAsync("Chaos fixture", Options.FixtureCollectorId, [Options.FixtureUrl]), "Fixture collection completed.");
+    private Task SetLayout(string layout) => Execute(async () => await Fixture.SetLayoutAsync(layout), $"Fixture switched to {layout.ToUpperInvariant()} at the same URL.");
+}
