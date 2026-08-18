@@ -4,11 +4,11 @@
 
 Create a Discovery + detail-page Scraper Studio collector starting at:
 
-`https://www.cisa.gov/news-events/ics-advisories`
+`https://raw.githubusercontent.com/cisagov/CSAF/refs/heads/develop/csaf_files/OT/white/index.txt`
 
 Prompt:
 
-> Find ICS Medical Advisories and visit each advisory detail page. Produce one row per advisory with exactly these fields: source_id, source_url, title, published_at (ISO 8601), manufacturer, products (array), models (array), affected_versions (array), cves (array), severity, summary, and mitigations. source_url must be the canonical CISA detail URL. Do not infer missing manufacturer, date, product, version, CVE, severity, or mitigation values. Return empty arrays for missing array fields and empty strings for missing optional text.
+> Each line in index.txt contains the relative path to advisory detail information. Find ICS Medical Advisories and visit each advisory detail page. Produce one row per advisory with exactly these fields: source_id, source_url, title, published_at (ISO 8601), manufacturer, products (array), models (array), affected_versions (array), cves (array), severity, summary, and mitigations. source_url must be the canonical CISA detail URL. Do not infer missing manufacturer, date, product, version, CVE, severity, or mitigation values. Return empty arrays for missing array fields and empty strings for missing optional text.
 
 Begin with a small recent-page scope for the demo. Verify the first dataset manually before copying the collector ID.
 
